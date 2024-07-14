@@ -1,0 +1,60 @@
+
+-- first i want to look at how many males and females have committed suicide in 2023, 2022
+SELECT 
+    year,
+    gender,
+    SUM(totalsuicide) AS total_suicides
+FROM suicide
+   WHERE year IN (2023, 2022)
+GROUP BY 
+    year, gender
+ORDER BY 
+    year, gender;
+
+select * from suicide
+
+--total suicides in 2023 and the percentage per province
+with citysuicides as (
+	select province, year,
+	sum(totalsuicide) as totalcitysuicides
+	from suicide
+	where year in (2023, 2022)
+	group by province, year
+),
+totalsuicide as (
+select 
+	sum(totalcitysuicides) as trtotalsuicide
+	from citysuicides
+	
+)
+select citysuicides.province, citysuicides.year,
+citysuicides.totalcitysuicides,
+totalsuicide.trtotalsuicide,
+round((citysuicides.totalcitysuicides / totalsuicide.trtotalsuicide * 100), 1) as percentage
+from citysuicides, totalsuicide
+order by percentage desc
+
+
+
+--now i want to look at total suicides percentage per gender
+
+with gendersuicide as (
+
+	select year, province, gender, sum(totalsuicide) as suicidebygender
+	from suicide
+	where gender in ('male', 'female') and year in (2022, 2023)
+	group by gender, year, province
+),
+gsuicide as (
+
+	select sum(suicidebygender) as totalsuicidebygender
+	from gendersuicide
+)
+select gendersuicide.gender, gendersuicide.year, gendersuicide.province,
+gendersuicide.suicidebygender,
+gsuicide.totalsuicidebygender,
+round((gendersuicide.suicidebygender / gsuicide.totalsuicidebygender * 100), 1) as genderpercentage2022 from
+gendersuicide, gsuicide
+order by genderpercentage2022
+
+select max(totalsuicide) from suicide
